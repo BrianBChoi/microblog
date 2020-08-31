@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, current_app
 from flask_login import current_user, login_required
 from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm
@@ -10,7 +10,7 @@ from app.main import bp
 @bp.before_app_request
 def before_request():
     if current_user.is_authenticated:
-        current_user.last_seen = datetime.utc.now()
+        current_user.last_seen = datetime.utcnow()
         db.session.commit()
 
 
@@ -18,7 +18,7 @@ def before_request():
 @bp.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    form = Postform()
+    form = PostForm()
     if form.validate_on_submit():
         post = Post(body=form.post.data, author=current_user)
         db.session.add(post)
@@ -27,7 +27,7 @@ def index():
         return redirect(url_for('main.index'))
     page = request.args.get('page', 1, type=int)
     posts = current_user.followed_posts().paginate(
-        page, app.config['POSTS_PER_PAGE'], False)
+        page, current_app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('main.index', page=posts.next_num) \
         if posts.has_next else None
     prev_url = url_for('main.index', page=posts.prev_num) \
@@ -42,7 +42,7 @@ def index():
 def explore():
     page = request.args.get('page', 1, type=int)
     posts = Post.query.order_by(Post.timestamp.desc()).paginate(
-        page, app.config['POSTS_PER_PAGE'], False)
+        page, current_app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('main.explore', page=posts.next_num) \
         if posts.has_next else None
     prev_url = url_for('main.explore', page=posts.prev_num) \
@@ -57,13 +57,13 @@ def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
     posts = user.own_posts().paginate(
-        page, app.config['POSTS_PER_PAGE'], False)
+        page, current_app.config['POSTS_PER_PAGE'], False)
     next_url = url_for('main.user', username=user.username, page=posts.next_num) \
         if posts.has_next else None
     prev_url = url_for('main.user', username=user.username, page=posts.prev_num) \
         if posts.has_prev else None
     form = EmptyForm()
-    return render)template('user.html', user=user, posts=posts.items, form=form,
+    return render_template('user.html', user=user, posts=posts.items, form=form,
                            next_url=next_url, prev_url=prev_url)
 
 
@@ -106,7 +106,7 @@ def follow(username):
 @bp.route('/unfollow/<username>', methods=['POST'])
 @login_required
 def unfollow(username):
-    form = EmptyForm():
+    form = EmptyForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=username).first()
         if user is None:
@@ -115,5 +115,9 @@ def unfollow(username):
         if user == current_user:
             flash('You cannot unfollow yourself!')
             return redirect(url_for('main.user', username=username))
-        else:
-            return redirect(url_for('main.index'))
+        current_user.unfollow(user)
+        db.session.commit()
+        flash('You have unfollowed {}.'.format(username))
+        return redirect(url_for('main.user', username=username))
+    else:
+        return redirect(url_for('main.index'))
