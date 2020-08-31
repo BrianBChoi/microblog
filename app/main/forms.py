@@ -1,7 +1,9 @@
+from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, ValidationError, Email, EqualTo, Length
+from wtforms import StringField, SubmitField, TextAreaField
+from wtforms.validators import ValidationError, DataRequired, Length
 from app.models import User
+
 
 class EditProfileForm(FlaskForm):
     username = StringField('New Username', validators=[DataRequired()])
@@ -18,8 +20,10 @@ class EditProfileForm(FlaskForm):
             if user is not None:
                 raise ValidationError('This username is already in use.')
 
+
 class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
+
 
 class PostForm(FlaskForm):
     post = TextAreaField('Say something', validators=[
