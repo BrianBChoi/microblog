@@ -19,3 +19,6 @@ class Config(object):
     ADMINS = ['codingprojects100@gmail.com']
 
     POSTS_PER_PAGE = 3
+
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+    #ELASTICSEARCH_URL env variable is set to http://localhost:9200
