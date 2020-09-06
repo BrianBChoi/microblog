@@ -18,4 +18,7 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = ['codingprojects100@gmail.com']
 
-    POSTS_PER_PAGE = 3
+    POSTS_PER_PAGE = 5
+
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+    #ELASTICSEARCH_URL env variable is set to http://localhost:9200
