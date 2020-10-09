@@ -47,6 +47,7 @@ def create_app(config_class=Config):
     if not app.debug:
         if app.config['MAIL_SERVER']:
             auth = None
+            secure = None
             if app.config['MAIL_USERNAME'] or app.config['MAIL_PASSWORD']:
                 auth = (app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
                 secure = None
